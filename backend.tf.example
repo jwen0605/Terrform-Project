@@ -1,0 +1,12 @@
+# Uncomment and fill in to store state remotely in S3 (recommended for teams).
+# Create the bucket and DynamoDB table manually before running `terraform init`.
+#
+# terraform {
+#   backend "s3" {
+#     bucket         = "my-terraform-state-bucket"
+#     key            = "myapp/prod/terraform.tfstate"
+#     region         = "us-east-1"
+#     encrypt        = true
+#     dynamodb_table = "terraform-state-lock"
+#   }
+# }
