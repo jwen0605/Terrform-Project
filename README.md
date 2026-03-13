@@ -42,7 +42,7 @@ Deploy a containerized application on AWS EKS with 2 worker nodes spread across 
 | VPC | 1x, CIDR `10.0.0.0/16` |
 | Subnets | 2x public + 2x private (one per AZ) |
 | NAT Gateways | 2x (one per AZ for HA) |
-| EKS Cluster | Kubernetes 1.29, private + public endpoint |
+| EKS Cluster | Kubernetes 1.31, private + public endpoint |
 | Worker Nodes | 2x `t3.medium`, 20 GB disk each |
 | ECR Repository | Private, scan-on-push enabled |
 | IAM Roles | Cluster role + Node role |
@@ -67,8 +67,8 @@ With 2 AZs, each node sits in a separate data center. If one AZ goes down, the o
 Every push to `main` automatically runs `terraform plan` and `terraform apply`. Pull requests only run `plan` (no apply), so you can review changes before merging.
 
 ```
-Push to main  →  Init → Format Check → Validate → Plan → Apply
-Open PR       →  Init → Format Check → Validate → Plan (stops here)
+Push to main  →  Init → Format → Validate → Plan → Apply
+Open PR       →  Init → Format → Validate → Plan (stops here)
 ```
 
 ### One-time Setup
@@ -169,8 +169,8 @@ You should see 2 nodes, each in a different AZ:
 
 ```
 NAME                          STATUS   ROLES    AGE   VERSION
-ip-10-0-1-x.ec2.internal      Ready    <none>   5m    v1.29.x
-ip-10-0-2-x.ec2.internal      Ready    <none>   5m    v1.29.x
+ip-10-0-1-x.ec2.internal      Ready    <none>   5m    v1.31.x
+ip-10-0-2-x.ec2.internal      Ready    <none>   5m    v1.31.x
 ```
 
 ### 5. Push your Docker image to ECR
@@ -254,7 +254,7 @@ terraform destroy
 ├── main.tf                   # Module wiring
 ├── variables.tf              # Input variables
 ├── outputs.tf                # Output values
-├── providers.tf              # AWS + Kubernetes providers
+├── providers.tf              # AWS provider
 ├── versions.tf               # Provider version pins
 ├── terraform.tfvars.example  # Variable template
 ├── backend.tf.example        # Remote state template
