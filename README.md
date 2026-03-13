@@ -62,6 +62,65 @@ With 2 AZs, each node sits in a separate data center. If one AZ goes down, the o
 | ECR Storage | $1 |
 | **Total** | **~$202/month** |
 
+## CI/CD with GitHub Actions
+
+Every push to `main` automatically runs `terraform plan` and `terraform apply`. Pull requests only run `plan` (no apply), so you can review changes before merging.
+
+```
+Push to main  →  Init → Format Check → Validate → Plan → Apply
+Open PR       →  Init → Format Check → Validate → Plan (stops here)
+```
+
+### One-time Setup
+
+**1. Enable S3 remote state** (required — GitHub Actions has no local state file):
+
+```bash
+cp backend.tf.example backend.tf
+# Fill in your S3 bucket name and DynamoDB table
+```
+
+**2. Create AWS OIDC trust** (allows GitHub Actions to assume an IAM role without storing credentials):
+
+```bash
+# In AWS Console → IAM → Identity Providers → Add Provider
+# Provider URL: https://token.actions.githubusercontent.com
+# Audience: sts.amazonaws.com
+```
+
+Then create an IAM role with the following trust policy:
+
+```json
+{
+  "Effect": "Allow",
+  "Principal": {
+    "Federated": "arn:aws:iam::<ACCOUNT_ID>:oidc-provider/token.actions.githubusercontent.com"
+  },
+  "Action": "sts:AssumeRoleWithWebIdentity",
+  "Condition": {
+    "StringLike": {
+      "token.actions.githubusercontent.com:sub": "repo:<YOUR_GITHUB_ORG>/<YOUR_REPO>:*"
+    }
+  }
+}
+```
+
+Attach permissions: `eks:*`, `ec2:*`, `iam:*`, `ecr:*`, `logs:*`, `s3:*`.
+
+**3. Add GitHub secret**:
+
+```
+GitHub repo → Settings → Secrets and variables → Actions → New repository secret
+Name:  AWS_ROLE_ARN
+Value: arn:aws:iam::<ACCOUNT_ID>:role/<YOUR_ROLE_NAME>
+```
+
+### Workflow File
+
+Located at [.github/workflows/terraform.yml](.github/workflows/terraform.yml).
+
+---
+
 ## Prerequisites
 
 - [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.5.0
@@ -189,6 +248,9 @@ terraform destroy
 
 ```
 .
+├── .github/
+│   └── workflows/
+│       └── terraform.yml     # GitHub Actions CI/CD pipeline
 ├── main.tf                   # Module wiring
 ├── variables.tf              # Input variables
 ├── outputs.tf                # Output values
